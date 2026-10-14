@@ -1,0 +1,38 @@
+# `docker compose up --build` runs the whole app on http://localhost:3000.
+# `docker compose up -d db` starts only Postgres, which is what local development uses.
+name: tack
+
+services:
+  db:
+    image: postgres:16-alpine
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: tack
+      POSTGRES_PASSWORD: tack
+      POSTGRES_DB: tack
+    ports:
+      - '5432:5432'
+    volumes:
+      - tack-db:/var/lib/postgresql/data
+    healthcheck:
+      test: ['CMD-SHELL', 'pg_isready -U tack -d tack']
+      interval: 5s
+      timeout: 5s
+      retries: 10
+
+  app:
+    build: .
+    restart: unless-stopped
+    depends_on:
+      db:
+        condition: service_healthy
+    environment:
+      DATABASE_URL: postgres://tack:tack@db:5432/tack
+      # This demo is served over plain http, where browsers refuse to keep a Secure cookie.
+      # Remove this line once the app sits behind HTTPS.
+      COOKIE_SECURE: 'false'
+    ports:
+      - '3000:3000'
+
+volumes:
+  tack-db:

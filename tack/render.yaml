@@ -1,0 +1,20 @@
+# Render Blueprint: New > Blueprint, pick this repository, and Render creates the web service and
+# the database together. The free Postgres plan is for trying things out; upgrade it for real use.
+services:
+  - type: web
+    name: tack
+    runtime: docker
+    plan: free
+    healthCheckPath: /api/health
+    envVars:
+      - key: DATABASE_URL
+        fromDatabase:
+          name: tack-db
+          property: connectionString
+      # One reverse proxy sits in front of the app. Needed for rate limiting and secure cookies.
+      - key: TRUST_PROXY
+        value: '1'
+
+databases:
+  - name: tack-db
+    plan: free
