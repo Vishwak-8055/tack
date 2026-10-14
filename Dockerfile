@@ -1,7 +1,7 @@
 # syntax=docker/dockerfile:1.7
 
 # ---- build: install everything, compile the web app, bundle the API ----------------------------
-FROM node:22-alpine AS build
+FROM node:26-alpine AS build
 WORKDIR /app
 
 # Manifests first, so the dependency layer is cached until a package.json or the lockfile changes.
@@ -15,7 +15,7 @@ COPY . .
 RUN npm run build
 
 # ---- deps: production dependencies of the API only (no React, no Vite, no TypeScript) ----------
-FROM node:22-alpine AS deps
+FROM node:26-alpine AS deps
 WORKDIR /app
 COPY package.json package-lock.json ./
 COPY packages/shared/package.json packages/shared/
@@ -24,7 +24,7 @@ COPY apps/web/package.json apps/web/
 RUN npm ci --omit=dev -w @tack/api
 
 # ---- runtime -----------------------------------------------------------------------------------
-FROM node:22-alpine
+FROM node:26-alpine
 ENV NODE_ENV=production \
     PORT=3000
 WORKDIR /app
